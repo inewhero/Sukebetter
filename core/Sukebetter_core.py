@@ -1,0 +1,85 @@
+import requests
+import re
+import json
+from bs4 import BeautifulSoup
+
+
+def get_javpage(current_page: int, load_num: int, header: dict, proxy: dict):
+    '''
+    get pages from javbee.org
+    '''
+    jav = [[], [], [], []]
+    jav_temp = []
+
+    for current_page in range(current_page, current_page+load_num):
+        javurl = 'https://javbee.org/new?page='+str(current_page)
+        # javurl = testurl
+        try:
+            req = requests.get(url=javurl, headers=header,
+                               proxies=proxy, timeout=20)
+        except:
+            print('Network Error: Response Timeout.')
+            jav = None
+            break
+
+        if req.status_code == 200:
+            print('Success. Page = '+str(current_page))
+            jav_temp = get_javresource(BeautifulSoup(req.text,features='lxml'))
+            if jav is None:
+                jav = jav_temp
+            else:
+                for res_catalogue in range(4):
+                    jav[res_catalogue].extend(jav_temp[res_catalogue])
+        else:
+            print(str(req.status_code)+' Fail. Page = '+str(current_page))
+            jav = None
+            break
+
+    return jav
+
+
+def get_javresource(soup: BeautifulSoup) -> list:
+    '''
+    get resources from javbee.org
+    '''
+    titlelist = []
+    sizelist = []
+    soup_info = soup.find_all(class_='title is-4 is-spaced')
+    for info_addr in range(0, len(soup_info)):
+        info_temp = [text for text in soup_info[info_addr].stripped_strings]
+        titlelist.append(info_temp[0])
+        sizelist.append(info_temp[1])
+
+    imagelist = []
+    for soup_image in soup.find_all('button', attrs={'data-image': re.compile('src')}):
+        image_temp = soup_image.get('data-image')
+        image_temp_list = [json.loads(image_temp)[image_addr]['src'] for image_addr in range(
+            0, len(json.loads(image_temp)))]  # an ugly way to create imagelists but...
+        imagelist.append(image_temp_list)
+
+    magnetlist = []
+    for soup_magnet in soup.find_all('a', attrs={'href': re.compile('^magnet:')}):
+        magnetlist.append(soup_magnet.get('href'))
+
+    omni_list = [titlelist, sizelist, imagelist, magnetlist]
+
+    return omni_list
+
+
+header = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+}
+proxy = {
+    'http': 'http://127.0.0.1:10809',
+    'https': 'http://127.0.0.1:10809'
+}
+
+if __name__ == '__main__':
+    pagenum = input('How many page(s) do you want?\n')
+    print('Now Loading...\n')
+    jav = get_javpage(1, int(pagenum), header, proxy)
+    if jav is None:
+        print('No Data.')
+    else:
+        print(jav)
+    
