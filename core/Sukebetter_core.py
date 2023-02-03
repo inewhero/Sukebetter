@@ -4,16 +4,16 @@ import json
 from bs4 import BeautifulSoup
 
 
-def get_javpage(current_page: int, load_num: int, header: dict, proxy: dict):
+def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
     '''
-    get pages from javbee.org
+    get pages from sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2
     '''
-    jav = [[], [], [], []]
+    jav = [[], [], []]
     jav_temp = []
-
     for current_page in range(current_page, current_page+load_num):
-        javurl = 'https://javbee.org/new?page='+str(current_page)
-        # javurl = testurl
+        javurl = 'https://sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2&p=' + \
+            str(current_page)
+
         try:
             req = requests.get(url=javurl, headers=header,
                                proxies=proxy, timeout=20)
@@ -24,7 +24,63 @@ def get_javpage(current_page: int, load_num: int, header: dict, proxy: dict):
 
         if req.status_code == 200:
             print('Success. Page = '+str(current_page))
-            jav_temp = get_javresource(BeautifulSoup(req.text,features='lxml'))
+            jav_temp = get_nyaaresource(BeautifulSoup(req.text, features='lxml'))
+            if jav is None:
+                jav = jav_temp
+            else:
+                for res_catalogue in range(3):
+                    jav[res_catalogue].extend(jav_temp[res_catalogue])
+        else:
+            print(str(req.status_code)+' Fail. Page = '+str(current_page))
+            break
+
+    return jav
+    
+
+
+def get_nyaaresource(soup: BeautifulSoup) -> list:
+    '''
+    get resources from javbee.org
+    '''
+    titlelist = []
+    for soup_title in soup.find_all('a', attrs={'title': re.compile('FC2-PPV')}):
+        titlelist.append(soup_title.get('title'))
+
+    sizelist = []
+    soup_size = soup.select('body > div > div.row > div.table-responsive > table > tbody > tr > td:nth-child(4)')
+    size_addr = len(soup_size)
+    sizelist = [soup_size[size_addr].string for size_addr in range(size_addr)]
+
+    magnetlist = []
+    for soup_magnet in soup.find_all('a', attrs={'href': re.compile('^magnet:')}):
+            magnetlist.append(soup_magnet.get('href'))
+    
+    omni_list = [titlelist, sizelist, magnetlist]
+
+    return omni_list
+
+
+def get_javbeepage(current_page: int, load_num: int, header: dict, proxy: dict):
+    '''
+    get pages from javbee.org
+    '''
+    jav = [[], [], [], []]
+    jav_temp = []
+
+    for current_page in range(current_page, current_page+load_num):
+        javurl = 'https://javbee.org/new?page='+str(current_page)
+
+        try:
+            req = requests.get(url=javurl, headers=header,
+                               proxies=proxy, timeout=20)
+        except:
+            print('Network Error: Response Timeout.')
+            jav = None
+            break
+
+        if req.status_code == 200:
+            print('Success. Page = '+str(current_page))
+            jav_temp = get_javbeeresource(BeautifulSoup(req.text,features='lxml'))
             if jav is None:
                 jav = jav_temp
             else:
@@ -32,13 +88,12 @@ def get_javpage(current_page: int, load_num: int, header: dict, proxy: dict):
                     jav[res_catalogue].extend(jav_temp[res_catalogue])
         else:
             print(str(req.status_code)+' Fail. Page = '+str(current_page))
-            jav = None
             break
 
     return jav
 
 
-def get_javresource(soup: BeautifulSoup) -> list:
+def get_javbeeresource(soup: BeautifulSoup) -> list:
     '''
     get resources from javbee.org
     '''
@@ -77,7 +132,7 @@ proxy = {
 if __name__ == '__main__':
     pagenum = input('How many page(s) do you want?\n')
     print('Now Loading...\n')
-    jav = get_javpage(1, int(pagenum), header, proxy)
+    jav = get_nyaapage(1, int(pagenum), header, proxy)
     if jav is None:
         print('No Data.')
     else:
