@@ -8,7 +8,7 @@ def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
     '''
     get pages from sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2
     '''
-    jav = [[], [], []]
+    jav = [[], [], [], []]
     jav_temp = []
     for current_page in range(current_page, current_page+load_num):
         javurl = 'https://sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2&p=' + \
@@ -28,7 +28,7 @@ def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
             if jav is None:
                 jav = jav_temp
             else:
-                for res_catalogue in range(3):
+                for res_catalogue in range(4):
                     jav[res_catalogue].extend(jav_temp[res_catalogue])
         else:
             print(str(req.status_code)+' Fail. Page = '+str(current_page))
@@ -40,7 +40,7 @@ def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
 
 def get_nyaaresource(soup: BeautifulSoup) -> list:
     '''
-    get resources from javbee.org
+    get resources from sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2
     '''
     titlelist = []
     for soup_title in soup.find_all('a', attrs={'title': re.compile('FC2-PPV')}):
@@ -51,11 +51,15 @@ def get_nyaaresource(soup: BeautifulSoup) -> list:
     size_addr = len(soup_size)
     sizelist = [soup_size[size_addr].string for size_addr in range(size_addr)]
 
+    timestamplist = []
+    for soup_timestamp in soup.find_all('td', attrs={'data-timestamp': re.compile('\d{10}')}):
+        timestamplist.append(soup_timestamp.get('data-timestamp'))
+
     magnetlist = []
     for soup_magnet in soup.find_all('a', attrs={'href': re.compile('^magnet:')}):
             magnetlist.append(soup_magnet.get('href'))
     
-    omni_list = [titlelist, sizelist, magnetlist]
+    omni_list = [titlelist, sizelist, timestamplist, magnetlist]
 
     return omni_list
 
