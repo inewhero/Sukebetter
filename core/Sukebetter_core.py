@@ -3,6 +3,39 @@ import re
 import json
 from bs4 import BeautifulSoup
 
+def check_status():
+    '''
+    check if nyaa.si/javbee.org/fc2hub.com/fc2.com is available
+    '''
+    network_result = {'nyaa':None,'javbee':None,'fc2hub':None,'fc2':None}
+
+    try:
+        reqcode_nyaa = requests.get(url='https://sukebei.nyaa.si/static/img/icons/sukebei/2_2.png', 
+                               headers=header,proxies=proxy, timeout=15).status_code
+        network_result['nyaa'] = reqcode_nyaa
+    except:
+        print('Network Error: nyaa.si Response Timeout.')
+    try:
+        reqcode_javbee = requests.get(url='https://javbee.org/storage/155080/67af1b3315b0cef9c2d0bc4c2b6ef983.png', 
+                               headers=header,proxies=proxy, timeout=15).status_code
+        network_result['javbee'] = reqcode_javbee
+    except:
+        print('Network Error: javbee.org Response Timeout.')
+    try:
+        reqcode_fc2hub = requests.get(url='https://fc2hub.com/images/fc2hub.svg', 
+                               headers=header,proxies=proxy, timeout=15).status_code
+        network_result['fc2hub'] = reqcode_fc2hub
+    except:
+        print('Network Error: fc2hub.com Response Timeout.')
+    try:
+        reqcode_fc2 = requests.get(url='https://adult.contents.fc2.com/images/dot_arrow.png', 
+                               headers=header,proxies=proxy, timeout=15).status_code
+        network_result['fc2'] = reqcode_fc2
+    except:
+        print('Network Error: fc2.com Response Timeout.')
+    
+    return network_result
+
 
 def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
     '''
@@ -37,7 +70,6 @@ def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
     return jav
     
 
-
 def get_nyaaresource(soup: BeautifulSoup) -> list:
     '''
     get resources from sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2
@@ -68,6 +100,7 @@ def get_javbeepage(current_page: int, load_num: int, header: dict, proxy: dict):
     '''
     get pages from javbee.org
     '''
+    
     jav = [[], [], [], []]
     jav_temp = []
 
@@ -134,6 +167,7 @@ proxy = {
 }
 
 if __name__ == '__main__':
+    check_status()
     pagenum = input('How many page(s) do you want?\n')
     print('Now Loading...\n')
     jav = get_nyaapage(1, int(pagenum), header, proxy)
