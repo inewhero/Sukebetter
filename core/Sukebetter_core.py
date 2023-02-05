@@ -3,7 +3,7 @@ import re
 import json
 from bs4 import BeautifulSoup
 
-def check_status():
+def check_status() -> dict:
     '''
     check if nyaa.si/javbee.org/fc2hub.com/fc2.com is available
     '''
@@ -41,7 +41,7 @@ def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
     '''
     get pages from sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2
     '''
-    jav = [[], [], [], []]
+    jav = [[], [], [], [], []]  #[codelist, titlelist, sizelist, timestamplist, magnetlist]
     jav_temp = []
     for current_page in range(current_page, current_page+load_num):
         javurl = 'https://sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2&p=' + \
@@ -61,7 +61,7 @@ def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
             if jav is None:
                 jav = jav_temp
             else:
-                for res_catalogue in range(4):
+                for res_catalogue in range(5):
                     jav[res_catalogue].extend(jav_temp[res_catalogue])
         else:
             print(str(req.status_code)+' Fail. Page = '+str(current_page))
@@ -75,8 +75,15 @@ def get_nyaaresource(soup: BeautifulSoup) -> list:
     get resources from sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2
     '''
     titlelist = []
+    codelist_temp = []
+    codelist = []
+    fc2pattern = re.compile('[Ff][Cc]2.[Pp][Pp][Vv].[0-9]*')
     for soup_title in soup.find_all('a', attrs={'title': re.compile('FC2-PPV')}):
-        titlelist.append(soup_title.get('title'))
+        titlelist.append(soup_title.get('title')[4:])
+    for fctitle in titlelist:
+        codelist_temp.append(fc2pattern.findall(fctitle))
+    for fccode in codelist_temp:
+        codelist.append(''.join(fccode)[8:])
 
     sizelist = []
     soup_size = soup.select('body > div > div.row > div.table-responsive > table > tbody > tr > td:nth-child(4)')
@@ -91,7 +98,7 @@ def get_nyaaresource(soup: BeautifulSoup) -> list:
     for soup_magnet in soup.find_all('a', attrs={'href': re.compile('^magnet:')}):
             magnetlist.append(soup_magnet.get('href'))
     
-    omni_list = [titlelist, sizelist, timestamplist, magnetlist]
+    omni_list = [codelist, titlelist, sizelist, timestamplist, magnetlist]
 
     return omni_list
 
@@ -167,7 +174,7 @@ proxy = {
 }
 
 if __name__ == '__main__':
-    check_status()
+    #check_status()
     pagenum = input('How many page(s) do you want?\n')
     print('Now Loading...\n')
     jav = get_nyaapage(1, int(pagenum), header, proxy)
