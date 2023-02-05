@@ -2,6 +2,7 @@ import requests
 import re
 import json
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 def check_status() -> dict:
     '''
@@ -78,7 +79,7 @@ def get_nyaaresource(soup: BeautifulSoup) -> list:
     codelist_temp = []
     codelist = []
     fc2pattern = re.compile('[Ff][Cc]2.[Pp][Pp][Vv].[0-9]*')
-    for soup_title in soup.find_all('a', attrs={'title': re.compile('FC2-PPV')}):
+    for soup_title in soup.find_all('a', attrs={'title': fc2pattern}):
         titlelist.append(soup_title.get('title')[4:])
     for fctitle in titlelist:
         codelist_temp.append(fc2pattern.findall(fctitle))
@@ -165,6 +166,40 @@ def get_javbeeresource(soup: BeautifulSoup) -> list:
     return omni_list
 
 
+def get_fc2hubresource(fc2code:int, header: dict, proxy: dict) -> dict:
+    '''
+    get resources from fc2hub.com;
+    return fc2hub_dict with keys 'code', 'publish-time', 'image-url' and 'html-div'
+    '''
+    fc2hub_dict = {'code':fc2code, 'publish-time':None, 'image-url':None,'html-div':None}
+    fc2huburl = 'https://fc2hub.com/search?kw=' + str(fc2code)
+    try:
+        req = requests.get(url=fc2huburl, headers=header,
+                               proxies=proxy, timeout=20)
+    except:
+        print('Network Error: Response Timeout.')
+        return fc2hub_dict
+
+    soup = BeautifulSoup(req.text, features='lxml')
+    pubtime = soup.find('meta', attrs={'content': re.compile('^\d{4}-\d{1,2}-\d{1,2}')}).get('content')
+    pubdatetime = datetime.strptime(pubtime[:-3]+pubtime[-2:],"%Y-%m-%dT%H:%M:%S%z")
+    publish_timestamp = round(datetime.timestamp(pubdatetime))
+    fc2hub_dict['publish-time'] = publish_timestamp
+
+    imagelist = []
+    for fc2image in soup.find_all('a', attrs={'data-fancybox':'gallery'}):
+        imagelist.append(fc2image.get('href'))  #Sample Images Gallery
+    for fc2image in soup.find_all('img', attrs={'src':re.compile('https://storage[0-9]+.contents.fc2.*jpg')}):
+        imagelist.append(fc2image.get('src'))  #HTML_DIV Images Gallery
+    fc2hub_dict['image-url'] = imagelist
+
+    soup_html = soup.select('#content > div > div:nth-child(2) > div.col-xl-8.col-lg-7.col-12.col-sm-12.col-md-12 > div.card.shadow > div.card-body > div:nth-child(5) > div')
+    fc2html = str(soup_html[0])
+    fc2hub_dict['html-div'] = fc2html
+
+    return fc2hub_dict
+
+
 header = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
@@ -181,5 +216,7 @@ if __name__ == '__main__':
     if jav is None:
         print('No Data.')
     else:
-        print(jav)
-    
+        #print(jav)
+        fc2code = jav[0][0]
+        fc2 = get_fc2hubresource(fc2code, header, proxy)
+        print(fc2)
