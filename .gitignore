@@ -2,4 +2,6 @@
 *.txt
 *.ico
 *.js
+*.sqlite
 testhtml/
+cache/

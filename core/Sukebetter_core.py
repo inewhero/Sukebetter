@@ -1,39 +1,42 @@
-import requests
 import re
 import json
+import requests
+import requests_cache
 from bs4 import BeautifulSoup
 from datetime import datetime
+from fake_useragent import UserAgent
 
 def check_status() -> dict:
     '''
     check if nyaa.si/javbee.org/fc2hub.com/fc2.com is available
+    WITHOUT REQUEST CACHE
     '''
     network_result = {'nyaa':None,'javbee':None,'fc2hub':None,'fc2':None}
-
-    try:
-        reqcode_nyaa = requests.get(url='https://sukebei.nyaa.si/static/img/icons/sukebei/2_2.png', 
-                               headers=header,proxies=proxy, timeout=15).status_code
-        network_result['nyaa'] = reqcode_nyaa
-    except:
-        print('Network Error: nyaa.si Response Timeout.')
-    try:
-        reqcode_javbee = requests.get(url='https://javbee.org/storage/155080/67af1b3315b0cef9c2d0bc4c2b6ef983.png', 
-                               headers=header,proxies=proxy, timeout=15).status_code
-        network_result['javbee'] = reqcode_javbee
-    except:
-        print('Network Error: javbee.org Response Timeout.')
-    try:
-        reqcode_fc2hub = requests.get(url='https://fc2hub.com/images/fc2hub.svg', 
-                               headers=header,proxies=proxy, timeout=15).status_code
-        network_result['fc2hub'] = reqcode_fc2hub
-    except:
-        print('Network Error: fc2hub.com Response Timeout.')
-    try:
-        reqcode_fc2 = requests.get(url='https://adult.contents.fc2.com/images/dot_arrow.png', 
-                               headers=header,proxies=proxy, timeout=15).status_code
-        network_result['fc2'] = reqcode_fc2
-    except:
-        print('Network Error: fc2.com Response Timeout.')
+    with requests_cache.disabled():
+        try:
+            reqcode_nyaa = requests.get(url='https://sukebei.nyaa.si/static/img/icons/sukebei/2_2.png', 
+                                headers=header,proxies=proxy, timeout=15).status_code
+            network_result['nyaa'] = reqcode_nyaa
+        except:
+            print('Network Error: nyaa.si Response Timeout.')
+        try:
+            reqcode_javbee = requests.get(url='https://javbee.org/storage/155080/67af1b3315b0cef9c2d0bc4c2b6ef983.png', 
+                                headers=header,proxies=proxy, timeout=15).status_code
+            network_result['javbee'] = reqcode_javbee
+        except:
+            print('Network Error: javbee.org Response Timeout.')
+        try:
+            reqcode_fc2hub = requests.get(url='https://fc2hub.com/images/fc2hub.svg', 
+                                headers=header,proxies=proxy, timeout=15).status_code
+            network_result['fc2hub'] = reqcode_fc2hub
+        except:
+            print('Network Error: fc2hub.com Response Timeout.')
+        try:
+            reqcode_fc2 = requests.get(url='https://adult.contents.fc2.com/images/dot_arrow.png', 
+                                headers=header,proxies=proxy, timeout=15).status_code
+            network_result['fc2'] = reqcode_fc2
+        except:
+            print('Network Error: fc2.com Response Timeout.')
     
     return network_result
 
@@ -41,32 +44,34 @@ def check_status() -> dict:
 def get_nyaapage(current_page: int, load_num: int, header: dict, proxy: dict):
     '''
     get pages from sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2
+    WITHOUT REQUEST CACHE
     '''
     jav = [[], [], [], [], []]  #[codelist, titlelist, sizelist, timestamplist, magnetlist]
     jav_temp = []
-    for current_page in range(current_page, current_page+load_num):
-        javurl = 'https://sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2&p=' + \
-            str(current_page)
+    with requests_cache.disabled():
+        for current_page in range(current_page, current_page+load_num):
+            javurl = 'https://sukebei.nyaa.si/user/offkab?f=0&c=0_0&q=FC2&p=' + \
+                str(current_page)
 
-        try:
-            req = requests.get(url=javurl, headers=header,
-                               proxies=proxy, timeout=20)
-        except:
-            print('Network Error: Response Timeout.')
-            jav = None
-            break
+            try:
+                req = requests.get(url=javurl, headers=header,
+                                proxies=proxy, timeout=20)
+            except:
+                print('Network Error: Response Timeout.')
+                jav = None
+                break
 
-        if req.status_code == 200:
-            print('Success. Page = '+str(current_page))
-            jav_temp = get_nyaaresource(BeautifulSoup(req.text, features='lxml'))
-            if jav is None:
-                jav = jav_temp
+            if req.status_code == 200:
+                print('Success. Page = '+str(current_page))
+                jav_temp = get_nyaaresource(BeautifulSoup(req.text, features='lxml'))
+                if jav is None:
+                    jav = jav_temp
+                else:
+                    for res_catalogue in range(5):
+                        jav[res_catalogue].extend(jav_temp[res_catalogue])
             else:
-                for res_catalogue in range(5):
-                    jav[res_catalogue].extend(jav_temp[res_catalogue])
-        else:
-            print(str(req.status_code)+' Fail. Page = '+str(current_page))
-            break
+                print(str(req.status_code)+' Fail. Page = '+str(current_page))
+                break
 
     return jav
     
@@ -111,29 +116,29 @@ def get_javbeepage(current_page: int, load_num: int, header: dict, proxy: dict):
     
     jav = [[], [], [], []]
     jav_temp = []
+    with requests_cache.disabled():
+        for current_page in range(current_page, current_page+load_num):
+            javurl = 'https://javbee.org/new?page='+str(current_page)
 
-    for current_page in range(current_page, current_page+load_num):
-        javurl = 'https://javbee.org/new?page='+str(current_page)
+            try:
+                req = requests.get(url=javurl, headers=header,
+                                    proxies=proxy, timeout=20)
+            except:
+                print('Network Error: Response Timeout.')
+                jav = None
+                break
 
-        try:
-            req = requests.get(url=javurl, headers=header,
-                               proxies=proxy, timeout=20)
-        except:
-            print('Network Error: Response Timeout.')
-            jav = None
-            break
-
-        if req.status_code == 200:
-            print('Success. Page = '+str(current_page))
-            jav_temp = get_javbeeresource(BeautifulSoup(req.text,features='lxml'))
-            if jav is None:
-                jav = jav_temp
+            if req.status_code == 200:
+                print('Success. Page = '+str(current_page))
+                jav_temp = get_javbeeresource(BeautifulSoup(req.text,features='lxml'))
+                if jav is None:
+                    jav = jav_temp
+                else:
+                    for res_catalogue in range(4):
+                        jav[res_catalogue].extend(jav_temp[res_catalogue])
             else:
-                for res_catalogue in range(4):
-                    jav[res_catalogue].extend(jav_temp[res_catalogue])
-        else:
-            print(str(req.status_code)+' Fail. Page = '+str(current_page))
-            break
+                print(str(req.status_code)+' Fail. Page = '+str(current_page))
+                break
 
     return jav
 
@@ -200,15 +205,14 @@ def get_fc2hubresource(fc2code:int, header: dict, proxy: dict) -> dict:
     return fc2hub_dict
 
 
-header = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
-}
+header = {'User-Agent': UserAgent().chrome}
 proxy = {
     'http': 'http://127.0.0.1:10809',
     'https': 'http://127.0.0.1:10809'
 }
 
 if __name__ == '__main__':
+    requests_cache.install_cache(cache_name='./cache/skb_cache', backend='sqlite', allowable_codes=(200, 301, 302), allowable_methods=('GET',))
     #check_status()
     pagenum = input('How many page(s) do you want?\n')
     print('Now Loading...\n')
