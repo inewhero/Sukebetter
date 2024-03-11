@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Sukebetter-JS
-// @homepage     https://greasyfork.org/en/scripts/488024-sukebetter-js
-// @version      0.3
-// @description  An elegant tool to enjoy nyaa.si resources.
+// @version      0.4
+// @description  An elegant tool to enjoy fc2hub/nyaa.si resources.
 // @license      Apache-2.0
 // @author       inewhero
 // @grant        GM_xmlhttpRequest
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABCCAYAAADjVADoAAAACXBIWXMAAAsTAAALEwEAmpwYAAAEU0lEQVR4nO2b34sbVRTHL6ylq/+AVXySCuIvRFvxB1qqCFWbnDOp8TU+9cUXxT/gnhMqpfYXK4hGn6yIulhxrRZFEMUH8Wf/CqkKzc65s9X60pGTzZbsNslOMnd+JMwXDoTJ5P745J577zlzx5hKlSpVqlSptIr32RvCmt0dBfbJKOCmQPtFNf2s1/S7uLm8YOZNcfPkjQJcc0inBfmCAP/nkONxpvcI0u8O+ZSgPRi37KKZVYVoHxKkdx1QuF3HE9iqIHXCut1jZkWubp8Q5G88dH64AX/tGvyYKavWgiO3OOQzgnQ1MwibgZy7HNjbTJkUYfsFTy4wscs4tI2i+2/iw50dgvRmAQC2jA5a0tWoEAh/HLQ3OaAvCodwzehzXaFyhyDAPxTf+c0mQN/lBiM+3NnhkL8sutOj3YTP5eImUoY5YVsYtJQphCjgZuGdTGwZrSaX6/bWgpbIKY26a027yzsIAfrQd2MF+F9B/kiAPtbPGbjI+963zc43BKQrIbYf3KhDP+s1z3VcFbCPegMh2cQOK9cBR17JwEW+8hZFOv8Q9N/qXA+cOlnU5SVqFQ2lZxyEIL+dCkLcsovrgc1sg9DVLtWOU3qZpQwaljcIrS/g56YG4ZBOzwsIh3xiahCCfGFuQAD/NhWEuLm84HtdLxKE9mWq7Lg02ndkOEyLcI04bNjbJwYRBvz0vIGIgJ+aGIQDPjRvIFydg4lBCFIrVaXAP0mdXuk9pAH6Z1oQ/d9qGa86oJ9Twm/lCwL4x8EskW5xNSyeHAR1B7fHWmYaGFOBcClcIwropa3laXQ5CGN7ENQdjE6v3QP8cq7JmjDFZCnAR4aWOQBjPIjhEPr3HMt1sgxrdncK14iiwN4zDsZoEKMhaJladq7LZ5xyQyVAf0fQvndY2Wtg7xego1uvO+DXw4D3DvuNa9g7Bfhi7hsqH1tsAf5r1MiIDyztTHJNpWUo2DRtcUi/miKDLhkzMhK1IeVIGABxvPAwXJD+jGrtuyet389I2PhD7LOlSMzIGDfJdiT0RkN3lNsllgC/46cxyWH4hdBzz7dMWoUB7/XVoA03cXV7Vx7usGGjluPC0/miI2PInOF7JPQM6LwXCCoH/LjXxq3DuBjV7H29Cowxq4F9wPdI6D3gQX7E+JRD+sA7DKQrAnxWkD5NcuxwcqP3TEaHxVb9NzYjA74U1V672WQhV7fPF97BhC4xVRJmEjnkN4ruaAI7ZbJWrMEY8NkSdHaUreR2wi7W89XI35fQJb7N/dx2fGBppyB9UhoIQJ/lfrxwUw6x4DmjNzECnSzFqw1uPb+Z/9IKfMkhgymT1pp2V16H0vt1nMlsn+BD+gqBHtfJbhTQeQnsw2ZWFNbtnn5W2oPLUFdDaY1HzKwqbtlFzQ7phKZ5wyQJ4f49v2h6TZCfSZ1UKaPi5vKCptX1RTadZPXpU++pGvChqM779btSrACVKlWqVKmSGaX/AeRFIB8LAoWuAAAAAElFTkSuQmCC
+// @match        *://fc2hub.com/*
 // @match        *://sukebei.nyaa.si/*
 // @match        *://javball.com/*
 // @match        *://ovabee.com/*
@@ -17,6 +17,7 @@
 // @match        *://cnpics.org/*
 // @match        *://cosplay18.pics/*
 // @match        *://pig69.com/*
+// @connect      *://sukebei.nyaa.si/*
 // @connect      *://javball.com/*
 // @connect      *://ovabee.com/*
 // @connect      *://cnxx.me/*
@@ -27,6 +28,9 @@
 // @connect      *://cosplay18.pics/*
 // @connect      *://pig69.com/*
 // @run-at       document-end
+// @namespace    https://greasyfork.org/users/1263683
+// @downloadURL  https://update.greasyfork.org/scripts/488024/Sukebetter-JS.user.js
+// @updateURL    https://update.greasyfork.org/scripts/488024/Sukebetter-JS.meta.js
 // ==/UserScript==
 
 (function() {
@@ -41,7 +45,8 @@
                     console.log('remove ad scripts: ' + fcscripts[i].attributes.src.value);
                     fcscripts[i].remove();
                 }
-            } else if (fcscripts[i].text) {
+            }
+            else if (fcscripts[i].text) {
                 if (fcscripts[i].text.search(/adConfig/i) != -1){
                     console.log('remove ad scripts: ' + fcscripts[i].text.value);
                     fcscripts[i].remove();
@@ -117,9 +122,9 @@
             let thumb_parent = document.querySelector('#torrent-description > hr:nth-child(4) + p');
             thumbs.forEach(url => {
                 GM_xmlhttpRequest({
-                    method: "GET",
+                    method: 'GET',
                     url: url,
-                    responseType: "blob",
+                    responseType: 'blob',
                     onload: function(response) {
                         let parser = new DOMParser();
                         let doc = parser.parseFromString(response.responseText, 'text/html');
@@ -127,20 +132,65 @@
                         let real_thumb = document.createElement('img');
                         real_thumb.src = realimg;
                         console.log('fetch thumb: ' + realimg);
-                        thumb_parent.innerHTML = "";
+                        thumb_parent.innerHTML = '';
                         thumb_parent.appendChild(real_thumb);
                     },
                     onerror: function(error) {
-                        console.error("GET error: ", error);
+                        console.error('GET error: ', error);
                     }
                 });
             });
         }
+    }
 
+    //fc2hub advance
+    else if (window.location.origin=='https://fc2hub.com') {
 
-    //picture beds ad remove
+        //modify .stretched-link::after via head
+        let sl_style = document.createElement('style');
+        sl_style.innerHTML='.stretched-link::after{position:static}';
+        document.head.appendChild(sl_style);
+
+        //get fc2 article code
+        let hubcol = document.querySelector('.col-sm-12');
+        let hubrow = hubcol.children[hubcol.childElementCount-2];
+        let hubcards = hubrow.getElementsByClassName('card-title');
+        let fc2code = [];
+        for (let i = 0; i < hubcards.length; i++) {
+            fc2code[i] = hubcards[i].innerText;
+        }
+        fc2code.forEach((code, index) => {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: 'https://sukebei.nyaa.si/?f=2&c=0_0&q=' + code,
+                responseType: "blob",
+                onload: function(response) {
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(response.responseText, 'text/html');
+                    let nyaa_addr = doc.querySelector('.table-responsive').childNodes[1].children[1].children[0].children[1].children[0].href;
+                    nyaa_addr = nyaa_addr.replace(/https:\/\/fc2hub\.com/, 'https://sukebei.nyaa.si');
+                    console.log('Nyaa.si included ' + code +' at: ' + nyaa_addr);
+
+                    //add sukebei.nyaa.si <a> button
+                    if (nyaa_addr != '') {
+                        let nyaaButton = document.createElement('a');
+                        nyaaButton.innerText = 'Nyaa';
+                        nyaaButton.href = nyaa_addr;
+                        nyaaButton.target = '_blank';
+                        nyaaButton.className = 'btn btn-primary stretched-link';
+                        hubcards[index].parentElement.appendChild(nyaaButton);
+                    }
+                },
+
+                onerror: function(error) {
+                    console.error('GET error: ', error);
+                }
+            });
+        });
+
+        //picture beds ad remove
     } else {
-        let realimg=document.getElementsByTagName('meta')['twitter:image:src'].content;
+        let realimg = document.getElementsByTagName('meta')['twitter:image:src'].content;
         window.open(realimg,'_self');
     }
 
